@@ -1,7 +1,6 @@
 import { generateNewsletterContent, applyFeedback, generateTitle } from './gemini.js';
 import { exportToPDF } from './pdf-export.js';
-import { exportToHWPX } from './hwpx-export.js';
-import { getSchool, initStorage } from './storage.js?v=5';
+import { getSchool, initStorage } from './storage.js?v=6';
 import { renderHeaderAsHTML } from './header-builder.js';
 
 /* ── 학교 정보 ── */

@@ -18,7 +18,8 @@ try {
   const app = initializeApp(FIREBASE_CONFIG, 'sejong-notice');
   db = getFirestore(app);
 } catch (e) {
-  console.warn('[storage] Firebase 초기화 실패:', e);
+  console.error('[storage] Firebase 초기화 실패:', e);
+  window.dispatchEvent(new CustomEvent('storage-init-error', { detail: e.message }));
 }
 
 /* ── 인메모리 캐시 ── */
@@ -35,20 +36,24 @@ export function initStorage() {
 }
 
 async function _loadAll() {
-  if (!db) { _cache = []; return; }
+  if (!db) {
+    _cache = [];
+    window.dispatchEvent(new CustomEvent('storage-load-error', { detail: 'DB 미연결' }));
+    return;
+  }
   try {
     const snap = await getDocs(collection(db, COLL));
     _cache = snap.docs.map(d => {
       const data = { id: d.id, ...d.data() };
-      // headerTable은 JSON 문자열로 저장됨 (Firestore 중첩배열 불가 대응)
       if (typeof data.headerTable === 'string') {
         try { data.headerTable = JSON.parse(data.headerTable); } catch {}
       }
       return data;
     });
   } catch (e) {
-    console.warn('[storage] Firestore 로드 실패:', e);
+    console.error('[storage] Firestore 로드 실패:', e);
     _cache = [];
+    window.dispatchEvent(new CustomEvent('storage-load-error', { detail: e.message }));
   }
 }
 

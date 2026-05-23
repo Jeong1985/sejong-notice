@@ -1,4 +1,4 @@
-import { loadSchools, upsertSchool, deleteSchool, getSchool, initStorage } from './storage.js?v=5';
+import { loadSchools, upsertSchool, deleteSchool, getSchool, initStorage } from './storage.js?v=6';
 import { HeaderBuilder } from './header-builder.js';
 
 const ADMIN_PW = '0906';
@@ -33,10 +33,13 @@ async function compressImage(dataUrl, maxW = 300, maxH = 300, quality = 0.75) {
 
 document.addEventListener('DOMContentLoaded', async () => {
   showLoadingGrid();
-  await initStorage();     // Firestore → 인메모리 캐시 로드
+  window.addEventListener('storage-load-error', e => {
+    showToast('⚠️ Firestore 연결 실패 — 네트워크를 확인하거나 새로고침해주세요.');
+    console.error('[main] Firestore 로드 오류:', e.detail);
+  });
+  await initStorage();
   renderSchoolGrid();
   bindEvents();
-  // Firestore 쓰기 오류 알림
   window.addEventListener('storage-write-error', e => {
     showToast('⚠️ 저장 오류가 발생했습니다. 다시 시도해주세요.');
     console.error('[main] Firestore 쓰기 오류:', e.detail);
