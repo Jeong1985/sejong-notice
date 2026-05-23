@@ -93,7 +93,7 @@ export class HeaderBuilder {
       fontSize:13, fontFamily:'Noto Sans KR',
       bold:false, italic:false,
       color:'#000000', bgColor:'',
-      borderColor:'#888888', align:'center',
+      borderColor:'', align:'center',
     };
     this.data.objects.push(obj); // 박스는 맨 앞(상위 레이어)
     this.selected = obj.id;
@@ -152,7 +152,7 @@ export class HeaderBuilder {
           + (obj.bold   ? 'font-weight:bold;'   : '')
           + (obj.italic ? 'font-style:italic;'  : '')
           + `color:${obj.color||'#000'};`;
-        const bdrSt = obj.borderColor ? `border:1.5px solid ${obj.borderColor};` : 'border:1.5px solid #888;';
+        const bdrSt = obj.borderColor ? `border:1.5px solid ${obj.borderColor};` : '';
         const bgSt  = obj.bgColor     ? `background-color:${obj.bgColor};`       : '';
         const alnSt = `justify-content:${_fj(obj.align||'center')};`;
 

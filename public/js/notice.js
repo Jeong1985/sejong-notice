@@ -240,8 +240,8 @@ function bindEvents() {
   });
 
   /* 문서 설정 실시간 반영 */
-  onInput('inputResponsible', v => { state.responsible = v; });
-  onInput('inputPhone',       v => { state.phone = v; });
+  onInput('inputResponsible', v => { state.responsible = v; updateHeader(); });
+  onInput('inputPhone',       v => { state.phone = v; updateHeader(); });
   onInput('inputDate', v => {
     if (v) {
       const d = new Date(v + 'T00:00:00');
