@@ -1,0 +1,14 @@
+{
+  "projects": {
+    "default": "dajeonges2026"
+  },
+  "targets": {
+    "dajeonges2026": {
+      "hosting": {
+        "sejong-notice": [
+          "sejong-notice"
+        ]
+      }
+    }
+  }
+}

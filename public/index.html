@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>교육 안내장 생성기</title>
+  <link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Do+Hyeon&family=Gamja+Flower&family=Jua&family=Nanum+Gothic&family=Nanum+Myeongjo&family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="app">
+    <header class="app-bar">
+      <span class="app-title">📋 교육 안내장 생성기</span>
+      <button class="btn-admin-mode" id="btnAdminMode">🔒 관리자</button>
+    </header>
+
+    <main class="school-main" id="schoolMain">
+      <div class="school-grid" id="schoolGrid"></div>
+      <div class="empty-state hidden" id="emptyState">
+        <div class="empty-icon">🏫</div>
+        <p class="empty-title">등록된 학교가 없습니다</p>
+        <p class="empty-sub">관리자 모드에서 학교를 등록해주세요</p>
+      </div>
+    </main>
+  </div>
+
+  <!-- 관리자 로그인 모달 -->
+  <div class="modal-overlay hidden" id="loginModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>🔒 관리자 로그인</h3>
+        <button class="modal-close" id="btnLoginClose">✕</button>
+      </div>
+      <div class="modal-body" style="gap:12px">
+        <div class="field-group">
+          <label class="field-label">비밀번호</label>
+          <input class="field-input" type="password" id="loginPassword" placeholder="비밀번호 입력">
+        </div>
+        <p class="error-text hidden" id="loginError">비밀번호가 올바르지 않습니다.</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" id="btnLoginCancel">취소</button>
+        <button class="btn-primary" id="btnLoginConfirm">로그인</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 관리자 드로어 -->
+  <div class="drawer-backdrop hidden" id="drawerBackdrop"></div>
+  <div class="admin-drawer hidden" id="adminDrawer">
+    <div class="drawer-header">
+      <h2>⚙️ 관리자 모드</h2>
+      <button class="btn-icon" id="btnDrawerClose">✕</button>
+    </div>
+    <div class="drawer-body">
+      <button class="btn-primary w-full mb-12" id="btnNewSchool">+ 새 학교 등록</button>
+      <div class="school-manage-list" id="schoolManageList"></div>
+    </div>
+  </div>
+
+  <!-- 학교 등록/수정 모달 -->
+  <div class="modal-overlay hidden" id="schoolModal">
+    <div class="modal-box modal-fullscreen">
+      <div class="modal-header">
+        <h3 id="schoolModalTitle">🏫 학교 등록</h3>
+        <button class="modal-close" id="btnSchoolModalClose">✕</button>
+      </div>
+      <div class="modal-body school-edit-body">
+
+        <!-- 왼쪽: 설정 + 헤더 빌더 -->
+        <div class="school-edit-left">
+          <section class="edit-section">
+            <h4 class="section-title">기본 정보</h4>
+            <div class="field-group">
+              <label class="field-label">학교명 <span class="required">*</span></label>
+              <input class="field-input" type="text" id="inputSchoolName" placeholder="예: 한결초등학교">
+            </div>
+            <div class="field-group">
+              <label class="field-label">학교 로고 (메인 화면 표시용)</label>
+              <div class="logo-upload-wrap" id="logoUploadWrap">
+                <input type="file" id="inputLogo" accept="image/*" hidden>
+                <div class="logo-preview-circle" id="logoPreviewCircle">
+                  <span id="logoPreviewText" style="font-size:11px;color:#888;text-align:center;padding:4px">이미지<br>선택</span>
+                  <img id="logoPreviewImg" src="" alt="" hidden style="width:100%;height:100%;object-fit:cover">
+                </div>
+                <div class="logo-upload-hint">
+                  <p>클릭하여 로고 이미지 업로드</p>
+                  <p class="text-muted">학교 상징 또는 엠블럼</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="edit-section">
+            <h4 class="section-title">헤더 캔버스</h4>
+
+            <!-- ① 기본 툴바 -->
+            <div class="hb-toolbar">
+              <button class="btn-tool" id="btnAddCellImg">🖼 이미지 추가</button>
+              <button class="btn-tool" id="btnAddBox">＋ 박스 추가</button>
+              <div class="hb-toolbar-sep"></div>
+              <button class="btn-tool btn-danger-tool" id="btnDelObj">🗑 삭제</button>
+              <div class="hb-toolbar-sep"></div>
+              <span class="hb-fmt-label">높이</span>
+              <button class="btn-count" id="btnCanvasDec">−</button>
+              <span class="count-val" id="canvasHVal">120</span>
+              <span class="hb-fmt-label">px</span>
+              <button class="btn-count" id="btnCanvasInc">+</button>
+              <input type="file" id="inputCellImg" accept="image/*" hidden>
+            </div>
+
+            <!-- ② 선택된 오브젝트 서식 바 (텍스트 박스 전용) -->
+            <div class="hb-format-bar fmt-disabled" id="hbFormatBar">
+              <!-- 텍스트 박스 전용 -->
+              <div id="hbTextFmt" style="display:contents">
+                <select class="hb-select hb-select-font" id="fmtFont" title="글씨체">
+                  <option value="Noto Sans KR">노토산스</option>
+                  <option value="Nanum Gothic">나눔고딕</option>
+                  <option value="Nanum Myeongjo">나눔명조</option>
+                  <option value="Black Han Sans">블랙한산스</option>
+                  <option value="Do Hyeon">도현</option>
+                  <option value="Jua">주아</option>
+                  <option value="Gamja Flower">감자꽃</option>
+                </select>
+                <input class="hb-num-input" type="number" id="fmtSize" min="6" max="72" value="13" title="글자크기(px)">
+                <span class="hb-fmt-label">px</span>
+                <div class="hb-fmt-sep"></div>
+                <button class="btn-fmt" id="fmtBold" title="굵게"><b>B</b></button>
+                <button class="btn-fmt" id="fmtItalic" title="기울임"><i>I</i></button>
+                <div class="hb-fmt-sep"></div>
+                <button class="btn-align" id="fmtLeft"   data-align="left"   title="좌">좌</button>
+                <button class="btn-align active" id="fmtCenter" data-align="center" title="중">중</button>
+                <button class="btn-align" id="fmtRight"  data-align="right"  title="우">우</button>
+                <div class="hb-fmt-sep"></div>
+                <label class="hb-color-wrap" title="글자색">
+                  <span class="hb-color-tag">가</span>
+                  <input type="color" id="fmtColor" value="#000000">
+                </label>
+                <label class="hb-color-wrap" title="배경색">
+                  <span class="hb-color-tag">배</span>
+                  <input type="color" id="fmtBgColor" value="#ffffff">
+                </label>
+                <button class="btn-fmt btn-fmt-wide" id="fmtBgClear">배경제거</button>
+                <div class="hb-fmt-sep"></div>
+                <label class="hb-color-wrap" title="테두리색">
+                  <span class="hb-color-tag">선</span>
+                  <input type="color" id="fmtBorderColor" value="#888888">
+                </label>
+                <button class="btn-fmt btn-fmt-wide" id="fmtBorderClear">선제거</button>
+              </div>
+              <!-- 이미지 전용 -->
+              <div id="hbImgFmt" style="display:none">
+                <span class="hb-fmt-label">맞춤</span>
+                <select class="hb-select" id="fmtObjectFit" title="이미지 맞춤 방식">
+                  <option value="contain">비율유지</option>
+                  <option value="cover">채우기</option>
+                  <option value="fill">늘이기</option>
+                </select>
+                <button class="btn-tool" id="btnReplaceImg">이미지 교체</button>
+                <input type="file" id="inputReplaceImg" accept="image/*" hidden>
+              </div>
+            </div>
+
+            <!-- ③ 내용 유형 빠른 선택 바 (박스 선택 시 표시) -->
+            <div class="hb-field-bar hidden" id="hbFieldBar">
+              <span class="hb-field-bar-label">내용 유형</span>
+              <button class="hb-field-btn active" data-type="">직접입력</button>
+              <button class="hb-field-btn" data-type="teacher">담당</button>
+              <button class="hb-field-btn" data-type="phone">전화번호</button>
+              <button class="hb-field-btn" data-type="date">발행일</button>
+              <button class="hb-field-btn" data-type="grade">학년</button>
+              <button class="hb-field-btn" data-type="class">반</button>
+              <button class="hb-field-btn" data-type="student">학생이름</button>
+              <button class="hb-field-btn" data-type="number">연번</button>
+              <button class="hb-field-btn" data-type="parent">보호자서명</button>
+            </div>
+
+            <div class="hb-scroll">
+              <div id="hbArea"></div>
+            </div>
+            <p class="hint-text">💡 이미지·박스 클릭 후 드래그 이동 · 파란 핸들로 크기 조절 · 박스 더블클릭 텍스트 편집 · 하단 바 드래그로 높이 조절</p>
+          </section>
+        </div>
+
+        <!-- 오른쪽: 미리보기 -->
+        <div class="school-edit-right">
+          <h4 class="section-title">헤더 미리보기</h4>
+          <div class="header-preview-box" id="headerPreviewBox"></div>
+          <p class="hint-text">* 실제 안내장에서 표시되는 헤더입니다</p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" id="btnSchoolCancel">취소</button>
+        <button class="btn-primary" id="btnSchoolSave">저장</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 삭제 확인 모달 -->
+  <div class="modal-overlay hidden" id="deleteModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>⚠️ 학교 삭제</h3>
+        <button class="modal-close" id="btnDeleteClose">✕</button>
+      </div>
+      <div class="modal-body">
+        <p id="deleteConfirmMsg">이 학교를 삭제하시겠습니까?</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" id="btnDeleteCancel">취소</button>
+        <button class="btn-danger" id="btnDeleteConfirm">삭제</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast hidden" id="toast"></div>
+
+  <script type="module" src="js/main.js?v=5"></script>
+</body>
+</html>

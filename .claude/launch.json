@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "school-notice-hub",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["serve", "-l", "3456", "public"],
+      "port": 3456
+    }
+  ]
+}
