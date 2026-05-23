@@ -1,4 +1,4 @@
-const GEMINI_API_KEY = 'AIzaSyDunPzy0myJySG2vdd7xiFk8jjKzk2a0yM';
+import { GEMINI_API_KEY } from './config.js';
 const GEMINI_MODEL   = 'gemini-2.5-flash';
 
 async function callGemini(systemInstruction, prompt, jsonMode = true) {
