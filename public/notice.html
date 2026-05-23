@@ -131,11 +131,12 @@
           <section class="form-block" id="replyBlock" style="display:none">
             <h3 class="form-block-title">✂ 회신 내용</h3>
             <div class="field-group">
-              <label class="field-label">내용 <span class="label-hint">(HTML 지원)</span></label>
-              <textarea class="field-textarea mono" id="inputReply" rows="5"
-                placeholder="학생 서명, 동의 여부 등 회신 내용"></textarea>
+              <label class="field-label">AI 요청사항 <span class="label-hint">(선택)</span></label>
+              <textarea class="field-textarea" id="inputReplyRequest" rows="3"
+                placeholder="예: 참가 여부 확인란 추가&#10;동의/비동의 선택 형식으로&#10;서명란 2개 (학생·보호자)"></textarea>
             </div>
-            <button class="btn-secondary w-full" id="btnApplyReply">✅ 적용</button>
+            <button class="btn-primary w-full" id="btnAiReply">🤖 AI 회신서 생성</button>
+            <p class="hint-text" style="margin-top:6px">💡 생성 후 미리보기에서 직접 선택·서식 편집 가능</p>
           </section>
 
           <!-- 🤖 AI 생성 -->
@@ -202,6 +203,6 @@
   </div>
   <div class="toast hidden" id="toast"></div>
 
-  <script type="module" src="js/notice.js?v=8"></script>
+  <script type="module" src="js/notice.js?v=10"></script>
 </body>
 </html>

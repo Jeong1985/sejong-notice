@@ -1,4 +1,4 @@
-import { generateNewsletterContent, applyFeedback, generateTitle } from './gemini.js';
+import { generateNewsletterContent, applyFeedback, generateTitle, generateReplyForm } from './gemini.js';
 import { exportToPDF } from './pdf-export.js';
 import { getSchool, initStorage } from './storage.js?v=6';
 import { renderHeaderAsHTML } from './header-builder.js';
@@ -204,15 +204,33 @@ function updateCutSection() {
   if (!state.cutLine) { sec.style.display = 'none'; return; }
   const sig = school?.name ? school.name.split('').join(' ') + ' 장' : '';
   sec.style.display = '';
+
+  // 이미 렌더링된 경우 회신서 내용은 유지하고 날짜/서명만 갱신
+  const existing = sec.querySelector('#docReplyContent');
+  if (existing) {
+    const dateEl = sec.querySelector('#docReplyDate');
+    const schoolEl = sec.querySelector('#docReplySchool');
+    if (dateEl) dateEl.textContent = state.date;
+    if (schoolEl) schoolEl.textContent = sig;
+    return;
+  }
+
   sec.innerHTML = `
     <div class="doc-cutline"></div>
     <div class="doc-reply-section">
-      <div class="doc-reply-content">${state.replyContent || DEFAULT_REPLY_HTML}</div>
+      <div class="doc-reply-content" id="docReplyContent"
+           contenteditable="true" spellcheck="false">${state.replyContent || DEFAULT_REPLY_HTML}</div>
       <div class="doc-reply-footer">
-        <div class="doc-date">${state.date}</div>
-        ${sig ? `<div class="doc-school">${esc(sig)}</div>` : ''}
+        <div class="doc-date" id="docReplyDate">${state.date}</div>
+        ${sig ? `<div class="doc-school" id="docReplySchool">${esc(sig)}</div>` : ''}
       </div>
     </div>`;
+
+  const replyEl = sec.querySelector('#docReplyContent');
+  if (replyEl) {
+    replyEl.addEventListener('focus', () => { activeCeEl = replyEl; });
+    replyEl.addEventListener('input', () => { state.replyContent = replyEl.innerHTML; });
+  }
 }
 
 /* ═══════════════════════════════════════
@@ -344,20 +362,30 @@ function bindEvents() {
   on('chkCutLine', 'change', e => {
     state.cutLine = e.target.checked;
     document.getElementById('replyBlock').style.display = e.target.checked ? 'flex' : 'none';
-    if (e.target.checked && !state.replyContent) {
-      state.replyContent = DEFAULT_REPLY_HTML;
-      document.getElementById('inputReply').value = DEFAULT_REPLY_HTML;
-    }
     updateCutSection();
   });
 
-  on('btnApplyReply', 'click', () => {
-    const val = document.getElementById('inputReply')?.value.trim();
-    state.replyContent = val
-      ? (val.startsWith('<') ? val : `<p>${val.replace(/\n\n+/g,'</p><p>').replace(/\n/g,'<br>')}</p>`)
-      : DEFAULT_REPLY_HTML;
-    updateCutSection();
-    showToast('회신 내용이 적용되었습니다.');
+  on('btnAiReply', 'click', async () => {
+    const d = _getExportData();
+    const request = document.getElementById('inputReplyRequest')?.value.trim();
+    showLoading('AI가 회신서를 생성하고 있습니다...');
+    try {
+      const html = await generateReplyForm({
+        title:   d.title,
+        content: d.content,
+        topic:   document.getElementById('inputTopic')?.value || d.title,
+        request,
+      });
+      state.replyContent = html;
+      const replyEl = document.getElementById('docReplyContent');
+      if (replyEl) {
+        replyEl.innerHTML = html;
+      } else {
+        updateCutSection();
+      }
+      showToast('✅ AI 회신서가 생성되었습니다.');
+    } catch(e) { showToast('오류: ' + e.message); }
+    finally { hideLoading(); }
   });
 
   /* PDF / HWPX */

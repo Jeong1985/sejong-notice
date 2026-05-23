@@ -125,6 +125,33 @@ JSON 형식으로만 출력: {"title":"수정된 제목","greeting":"수정된 �
   return parseJsonSafe(raw) || { content: `<p>${raw}</p>` };
 }
 
+export async function generateReplyForm({ title, content, topic, request }) {
+  const sys = `당신은 대한민국 초등학교 회신서 작성 전문가입니다.
+안내장 내용을 분석하여 학부모가 작성·제출하는 회신서를 HTML로 만듭니다.
+반드시 inline style만 사용하세요. class 사용 절대 금지.`;
+
+  const plain = content ? content.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').slice(0, 600) : '';
+  const prompt = `다음 학교 안내장에 어울리는 회신서를 HTML로 작성해주세요.
+
+【안내장 제목】${title || topic || '안내장'}
+【안내장 내용 요약】${plain || topic || ''}
+
+【작성 규칙】
+1. 첫 줄: 굵은 제목 <p style="font-weight:700;font-size:10.5pt;border-bottom:1px solid #888;padding-bottom:6px;margin-bottom:10px">회 신 서</p>
+2. 학년·반·번호·이름 4칸 표 (필수)
+3. 안내장 내용에 맞는 확인·동의·선택 항목 2~5개 (□ 체크박스 스타일)
+${request ? `[추가 요청사항] ${request}` : ''}
+4. 마지막 줄: 학부모 서명란
+5. 모든 스타일은 inline style (class 금지)
+6. 표: style="width:100%;border-collapse:collapse;font-size:10pt;margin-bottom:10px"
+7. td: style="border:1px solid #ccc;padding:5px;..."
+8. 일반 텍스트 p: style="font-size:10pt;margin-bottom:8px"
+9. HTML 코드만 출력 (설명·마크다운 불필요)`;
+
+  const raw = await callGemini(sys, prompt, false);
+  return raw.replace(/^```html?\s*/i, '').replace(/```\s*$/, '').trim();
+}
+
 export async function generateTitle({ topic }) {
   const raw = await callGemini(
     '초등학교 안내장 제목 생성 전문가입니다.',
