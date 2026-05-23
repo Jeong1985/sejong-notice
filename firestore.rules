@@ -1,7 +1,7 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /notice_sejong_schools/{docId} {
+    match /sejong_notice_schools/{docId} {
       allow read: if true;
       allow write: if true;
     }
