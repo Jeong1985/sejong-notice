@@ -35,6 +35,7 @@ const state = {
   date:         '',
   cutLine:      false,
   hasBorder:    false,
+  showTitle:    true,
   replyContent: '',
   images:       [],   // { dataUrl, name, id }
 };
@@ -198,6 +199,12 @@ function updateBorder() {
   page.classList.toggle('has-border', state.hasBorder);
 }
 
+function updateTitleVisibility() {
+  const el = document.getElementById('docTitle');
+  if (!el) return;
+  el.style.display = state.showTitle ? '' : 'none';
+}
+
 function updateCutSection() {
   const sec = document.getElementById('docCutSection');
   if (!sec) return;
@@ -254,6 +261,12 @@ function bindEvents() {
       state.pages = parseInt(btn.dataset.pages, 10);
       updatePageHeight();
     });
+  });
+
+  /* 제목 표시 토글 */
+  document.getElementById('chkShowTitle')?.addEventListener('change', e => {
+    state.showTitle = e.target.checked;
+    updateTitleVisibility();
   });
 
   /* 문서 설정 실시간 반영 */
