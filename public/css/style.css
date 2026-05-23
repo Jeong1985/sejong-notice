@@ -1079,3 +1079,27 @@ html, body {
   }
   .doc-footer { flex-shrink: 0; border-top: none; }
 }
+
+/* ── 스플래시 화면 ── */
+.splash-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 1;
+  transition: opacity 0.6s ease;
+}
+.splash-overlay.splash-fade {
+  opacity: 0;
+}
+.splash-overlay.hidden {
+  display: none;
+}
+.splash-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}

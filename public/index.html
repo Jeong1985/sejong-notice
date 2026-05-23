@@ -215,6 +215,19 @@
 
   <div class="toast hidden" id="toast"></div>
 
+  <!-- 스플래시 화면 (10% 확률) -->
+  <div class="splash-overlay hidden" id="splashOverlay">
+    <img src="splash.png" class="splash-img" alt="안내장 자동 생성기">
+  </div>
+
   <script type="module" src="js/main.js?v=6"></script>
+  <script>
+    if (Math.random() < 0.1) {
+      const el = document.getElementById('splashOverlay');
+      el.classList.remove('hidden');
+      setTimeout(() => el.classList.add('splash-fade'), 2700);
+      setTimeout(() => el.classList.add('hidden'), 3300);
+    }
+  </script>
 </body>
 </html>
