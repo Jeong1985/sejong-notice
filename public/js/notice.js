@@ -371,20 +371,6 @@ function bindEvents() {
     finally { hideLoading(); }
   });
 
-  on('btnExportDocx', 'click', async () => {
-    const d = _getExportData();
-    if (!d.content && !d.title) { showToast('내용을 먼저 생성해주세요.'); return; }
-    showLoading('HWPX 파일을 생성하고 있습니다...');
-    try {
-      await exportToHWPX({
-        title: d.title, greeting: d.greeting, content: d.content,
-        responsible: state.responsible, phone: state.phone, date: state.date,
-        schoolName: school?.name,
-      });
-      showToast('✅ HWPX 파일이 저장되었습니다.');
-    } catch(e) { showToast('HWPX 오류: ' + e.message); }
-    finally { hideLoading(); }
-  });
 }
 
 /* ═══════════════════════════════════════
@@ -403,7 +389,9 @@ function bindFormatBar() {
   /* 글자 크기 */
   const pfSize = document.getElementById('pfSize');
   const applySize = () => {
-    const pt = Math.max(6, Math.min(72, parseInt(pfSize.value, 10) || 12));
+    const raw = parseInt(pfSize.value, 10);
+    if (isNaN(raw)) return;
+    const pt = Math.max(6, Math.min(72, raw));
     _restoreSel();
     _wrapStyle('fontSize', pt + 'pt');
     pfSize.value = '';
@@ -441,12 +429,16 @@ function bindFormatBar() {
     e.preventDefault(); _restoreSel(); document.execCommand('removeFormat', false, null);
   });
 
-  /* 자간 — 활성 영역 전체 적용 */
+  /* 자간 — 선택 영역에만 적용 */
   const pfLS    = document.getElementById('pfLetterSpacing');
   const pfLSVal = document.getElementById('pfLSVal');
   pfLS?.addEventListener('input', e => {
     pfLSVal.textContent = e.target.value + 'px';
-    if (activeCeEl) activeCeEl.style.letterSpacing = e.target.value + 'px';
+  });
+  pfLS?.addEventListener('change', e => {
+    pfLSVal.textContent = e.target.value + 'px';
+    _restoreSel();
+    _wrapStyle('letterSpacing', e.target.value + 'px');
   });
 
   /* 줄간격 — 활성 영역 전체 적용 */
