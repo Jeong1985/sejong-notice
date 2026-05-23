@@ -585,6 +585,11 @@ function _getExportData() {
 
 function _restoreSel() {
   if (!savedSel) return;
+  // 저장된 범위가 속한 contenteditable에 포커스를 줘야 execCommand가 동작함
+  const anchor = savedSel.commonAncestorContainer;
+  const ceEl = (anchor.nodeType === Node.TEXT_NODE ? anchor.parentElement : anchor)
+    ?.closest('[contenteditable="true"]');
+  ceEl?.focus();
   const sel = window.getSelection();
   sel.removeAllRanges();
   sel.addRange(savedSel.cloneRange());
@@ -595,15 +600,14 @@ function _wrapStyle(prop, value) {
   if (!sel || sel.rangeCount === 0) return;
   const range = sel.getRangeAt(0);
   if (range.collapsed) return;
-  const span = document.createElement('span');
-  span.style[prop] = value;
-  try {
-    range.surroundContents(span);
-  } catch {
-    const frag = range.extractContents();
-    span.appendChild(frag);
-    range.insertNode(span);
-  }
+  // cloneContents로 선택 HTML 캡처 후 insertHTML로 교체
+  // → execCommand 기반이므로 브라우저 undo 스택에 기록됨
+  const frag = range.cloneContents();
+  const tmp = document.createElement('div');
+  tmp.appendChild(frag);
+  const cssProp = prop.replace(/([A-Z])/g, c => '-' + c.toLowerCase());
+  document.execCommand('insertHTML', false,
+    `<span style="${cssProp}:${value}">${tmp.innerHTML}</span>`);
 }
 
 /* ═══════════════════════════════════════
