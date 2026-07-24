@@ -1,6 +1,5 @@
 import { generateNewsletterContent, applyFeedback, generateTitle, generateReplyForm } from './gemini.js';
 import { exportToPDF } from './pdf-export.js';
-import { exportToHWPX } from './hwpx-export.js';
 import { getSchool, initStorage } from './storage.js?v=6';
 import { renderHeaderAsHTML } from './header-builder.js';
 
@@ -412,16 +411,6 @@ function bindEvents() {
     finally { hideLoading(); }
   });
 
-  /* HWPX (한글) */
-  on('btnExportHwpx', 'click', async () => {
-    const m = _getDocModel();
-    if (!m.contentHTML && !m.title) { showToast('내용을 먼저 생성해주세요.'); return; }
-    showLoading('HWPX 파일을 생성하고 있습니다...');
-    try { await exportToHWPX(m); showToast('✅ HWPX가 저장되었습니다. (한글에서 열어 확인해 주세요)'); }
-    catch(e) { showToast('HWPX 오류: ' + e.message); }
-    finally { hideLoading(); }
-  });
-
 }
 
 /* ═══════════════════════════════════════
@@ -635,7 +624,7 @@ function _getExportData() {
   };
 }
 
-/* PDF·HWPX 공용 문서 모델 (미리보기 실제 상태 기반) */
+/* PDF 내보내기용 문서 모델 (미리보기 실제 상태 기반) */
 function _getDocModel() {
   const sig = school?.name ? school.name.split('').join(' ') + ' 장' : '';
   const model = {
