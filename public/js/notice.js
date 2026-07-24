@@ -1,5 +1,6 @@
 import { generateNewsletterContent, applyFeedback, generateTitle, generateReplyForm } from './gemini.js';
 import { exportToPDF } from './pdf-export.js';
+import { exportToHWPX } from './hwpx-export.js';
 import { getSchool, initStorage } from './storage.js?v=6';
 import { renderHeaderAsHTML } from './header-builder.js';
 
@@ -401,13 +402,23 @@ function bindEvents() {
     finally { hideLoading(); }
   });
 
-  /* PDF / HWPX */
+  /* PDF (편집 가능·텍스트 선택형) */
   on('btnExportPdf', 'click', async () => {
-    const d = _getExportData();
-    if (!d.content && !d.title) { showToast('내용을 먼저 생성해주세요.'); return; }
-    showLoading('PDF를 생성하고 있습니다...');
-    try { await exportToPDF(d.title, school?.name, state.pages); showToast('✅ PDF가 저장되었습니다.'); }
+    const m = _getDocModel();
+    if (!m.contentHTML && !m.title) { showToast('내용을 먼저 생성해주세요.'); return; }
+    showLoading('편집 가능한 PDF를 생성하고 있습니다... (한글 폰트 준비)');
+    try { await exportToPDF(m); showToast('✅ PDF가 저장되었습니다.'); }
     catch(e) { showToast('PDF 오류: ' + e.message); }
+    finally { hideLoading(); }
+  });
+
+  /* HWPX (한글) */
+  on('btnExportHwpx', 'click', async () => {
+    const m = _getDocModel();
+    if (!m.contentHTML && !m.title) { showToast('내용을 먼저 생성해주세요.'); return; }
+    showLoading('HWPX 파일을 생성하고 있습니다...');
+    try { await exportToHWPX(m); showToast('✅ HWPX가 저장되었습니다. (한글에서 열어 확인해 주세요)'); }
+    catch(e) { showToast('HWPX 오류: ' + e.message); }
     finally { hideLoading(); }
   });
 
@@ -622,6 +633,32 @@ function _getExportData() {
     date:     state.date,
     schoolName: school?.name || '',
   };
+}
+
+/* PDF·HWPX 공용 문서 모델 (미리보기 실제 상태 기반) */
+function _getDocModel() {
+  const sig = school?.name ? school.name.split('').join(' ') + ' 장' : '';
+  const model = {
+    title:         state.showTitle ? (document.getElementById('docTitle')?.innerText?.trim() || '') : '',
+    greetingLabel: '학부모님께',
+    greetingHTML:  document.getElementById('docGreeting')?.innerHTML || '',
+    contentHTML:   document.getElementById('docContent')?.innerHTML  || '',
+    headerEl:      document.getElementById('docHeaderWrap') || null,
+    date:          state.date,
+    schoolSig:     sig,
+    schoolName:    school?.name || '',
+    hasBorder:     state.hasBorder,
+    cut:           null,
+  };
+  if (state.cutLine) {
+    const replyEl = document.getElementById('docReplyContent');
+    model.cut = {
+      replyHTML: replyEl?.innerHTML || state.replyContent || '',
+      date:      state.date,
+      sig,
+    };
+  }
+  return model;
 }
 
 function _restoreSel() {

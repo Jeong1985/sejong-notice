@@ -718,7 +718,7 @@ html, body {
 }
 .preview-label { font-size: 13px; font-weight: 700; color: var(--muted); }
 .toolbar-actions { display: flex; gap: 8px; }
-.btn-export-pdf, .btn-export-docx {
+.btn-export-pdf, .btn-export-docx, .btn-export-hwpx {
   padding: 7px 12px; border: none; border-radius: 6px;
   font-size: 12px; font-weight: 600; font-family: var(--font);
   cursor: pointer; transition: background .15s;
@@ -727,6 +727,8 @@ html, body {
 .btn-export-pdf:hover { background: #b91c1c; }
 .btn-export-docx { background: #0284c7; color: #fff; }
 .btn-export-docx:hover { background: #0369a1; }
+.btn-export-hwpx { background: #0d9488; color: #fff; }
+.btn-export-hwpx:hover { background: #0f766e; }
 
 .preview-scroll {
   flex: 1; overflow-y: auto; padding: 32px 24px;
